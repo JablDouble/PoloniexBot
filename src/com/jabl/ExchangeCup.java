@@ -6,14 +6,11 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class ExchangeCup {
+    //Класс отвечает за хранение информации биржевого стакана для опеределенной валюты.
     @SerializedName("asks")
-    private Map <String,Double>asks = new LinkedHashMap<>(); // BTC_ETH продажа
+    private Map <String,Double>asks = new LinkedHashMap<>(); // Хранит весь биржевой стакан для продаж
     @SerializedName("bids")
-    private Map <String,Double>bids = new LinkedHashMap<>(); // BTC_ETH покупка
-    @SerializedName("isFrozen")
-    private String isFrozen;
-    @SerializedName("seq")
-    private long seq;
+    private Map <String,Double>bids = new LinkedHashMap<>(); // Хранит весь биржевой стакан для купли
 
     public Map<String, Double> getAsks() {
         return asks;
@@ -29,21 +26,5 @@ public class ExchangeCup {
 
     public void setBids(Map<String, Double> bids) {
         this.bids = bids;
-    }
-
-    public String getIsFrozen() {
-        return isFrozen;
-    }
-
-    public void setIsFrozen(String isFrozen) {
-        this.isFrozen = isFrozen;
-    }
-
-    public long getSeq() {
-        return seq;
-    }
-
-    public void setSeq(long seq) {
-        this.seq = seq;
     }
 }

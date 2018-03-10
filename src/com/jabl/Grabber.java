@@ -24,22 +24,22 @@ public class Grabber implements Callable<ExchangeCup> {
         String line;
         try {
             while ((line = reader.readLine()) != null) {
-                buffer.append(line);
+                buffer.append(line);//добавляем в наш буффер информацию, которую мы получаем с сервера.
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
-        String resultJson = buffer.toString();
-
-        System.out.println("Входная строка: " + resultJson);
+        String resultJson = buffer.toString(); // переводим нашу информацию в Стринг.
         ExchangeCup parsing = new Gson().fromJson(resultJson, ExchangeCup.class);
-        return parsing;
+        //создаем новый объект ExchangeCup, добавляем в него всю информацию о купле-продаже валюты
+        return parsing;//возвращаем объект обратно в функцию.
     }
 
     public static ExchangeCup givePairs(String pairs) throws IOException, ExecutionException, InterruptedException {
         Callable<ExchangeCup> callable = new Grabber(new URL("https://poloniex.com/public?command=returnOrderBook&currencyPair="+pairs+"&depth=20"));
         FutureTask futureTask = new FutureTask(callable);
         new Thread(futureTask).start();
+        // создаем Коллабл, передаем в него адресс откуда будем принимать запросы и запускаем его
         return (ExchangeCup) futureTask.get();
     }
 
@@ -48,13 +48,14 @@ public class Grabber implements Callable<ExchangeCup> {
         HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
         urlConnection.setRequestMethod("GET");
         urlConnection.connect();
+        //принимаем адресс куда будем получать запрос,открываем соединение, кидаем запрос.
 
         InputStream inputStream = urlConnection.getInputStream();
         StringBuffer buffer = new StringBuffer();
         BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
         this.reader = reader;
         this.buffer = buffer;
-
+        //создаем ридер, читаем с него возвращаемую информацию с запроса.
     }
 
 }
