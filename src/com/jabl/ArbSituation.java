@@ -7,8 +7,8 @@ import java.util.Map;
 public class ArbSituation implements Runnable {
 
     private Double amount = null;//переменная отвечающая за текущий баланс
-    public double finalSum = 0;//переменная отвечающая за начальную сумму
-    public double beginSum = 0;//переменная отвечающая за конечную сумму
+    public double finalSum = 0;//переменная отвечающая за конечную сумму
+    public double beginSum = 0;//переменная отвечающая за начальную сумму
     List<String> transfer = new ArrayList<>();//переменная которая содержит информацию о всех трансферных операциях.
     List<String> rialto;
     Map<String, ExchangeCup> pairs;
