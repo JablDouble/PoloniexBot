@@ -36,7 +36,7 @@ public class Grabber implements Callable<ExchangeCup> {
     }
 
     public static ExchangeCup givePairs(String pairs) throws IOException, ExecutionException, InterruptedException {
-        Callable<ExchangeCup> callable = new Grabber(new URL("https://poloniex.com/public?command=returnOrderBook&currencyPair="+pairs+"&depth=20"));
+        Callable<ExchangeCup> callable = new Grabber(new URL("https://poloniex.com/public?command=returnOrderBook&currencyPair="+pairs+"&depth=100"));
         FutureTask futureTask = new FutureTask(callable);
         new Thread(futureTask).start();
         // создаем Коллабл, передаем в него адресс откуда будем принимать запросы и запускаем его

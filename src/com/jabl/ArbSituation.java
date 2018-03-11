@@ -3,8 +3,9 @@ package com.jabl;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 
-public class ArbSituation implements Runnable {
+public class ArbSituation implements Callable<StringBuilder> {
 
     private Double amount = null;//переменная отвечающая за текущий баланс
     public double finalSum = 0;//переменная отвечающая за начальную сумму
@@ -21,7 +22,8 @@ public class ArbSituation implements Runnable {
     }
 
     @Override
-    public void run() {
+    public StringBuilder call() throws Exception {
+        StringBuilder out = new StringBuilder();
         if(starting.equals("ETH")) {
             String order1 = rialto.get(0);//"ETH_BCH"
             String order2 = rialto.get(1);//"BTC_BCH"
@@ -33,7 +35,7 @@ public class ArbSituation implements Runnable {
             beginSum = splitSum(transfer.get(0),"ETH");
             finalSum = splitSum(transfer.get(5),"ETH");
             //Получаем информацию о стартовой сумме и конечной.
-            output("ETH");//Вывод информации о арбитражной ситуации.
+            out = output("ETH");//Вывод информации о арбитражной ситуации.
         }
         if(starting.equals("BTC")) {
             String order1 = rialto.get(1);//"BTC_BCH"
@@ -45,7 +47,7 @@ public class ArbSituation implements Runnable {
             beginSum = splitSum(transfer.get(0),"BTC");
             finalSum = splitSum(transfer.get(5),"BTC");
             //Получаем информацию о стартовой сумме и конечной.
-            output("BTC");
+            out = output("BTC");
         }
         if(starting.equals("BCH")) {
             String order1 = rialto.get(0);
@@ -56,23 +58,26 @@ public class ArbSituation implements Runnable {
             sell(order3);
             beginSum = splitSum(transfer.get(0),"BCH");
             finalSum = splitSum(transfer.get(5),"BCH");
-            output("BCH");
+            out = output("BCH");
         }
-
+        return out;
     }
 
-    public synchronized void output(String type){
+    public synchronized StringBuilder output(String type){
+        StringBuilder sb = new StringBuilder();
+        System.out.println(beginSum + " " + finalSum);
         if(beginSum < finalSum){
-            System.out.println(transfer.get(0) + " => " + transfer.get(1));
-            System.out.println(transfer.get(2) + " => " + transfer.get(3));
-            System.out.println(transfer.get(4) + " => " + transfer.get(5));
-            System.out.println();
-            System.out.println("Вы получили на " + (finalSum-beginSum) + type + " больше");
-            System.out.println();
+            sb.append(transfer.get(0) + " => " + transfer.get(1)+"\n");
+            sb.append(transfer.get(2) + " => " + transfer.get(3)+"\n");
+            sb.append(transfer.get(4) + " => " + transfer.get(5)+"\n");
+            sb.append("\n");
+            sb.append("Вы получите на " + (finalSum-beginSum) + type + " больше");
+            sb.append("\n");
             //Если финальная сумма больше чем начальная - тогда выводим информацию о арбитражной ситуации.
         } else{
-            System.out.println("Арбитражных ситуаций для " + type + " не существует");
+            sb.append("Арбитражных ситуаций для " + type + " не существует");
         }
+        return sb;
     }
 
     public void sell(String order){
@@ -87,10 +92,10 @@ public class ArbSituation implements Runnable {
             Double key = Double.valueOf(pair.getKey());//переменная хранит информацию о информацию о том, сколько едениц продают
             Double value = pair.getValue();//получаем цену которую хотят получить за продажу
             if(key > max1){
-                if(amount == null || amount >= key) {
+                //if(amount == null || amount >= key) {
                     sell = key;
                     max1 = value;
-                }
+                //}
                 //Ищем максимальную выгоду  value > max1 (ПОХОДУ ТУТ ОШИБКА!!!!)
             }
         }
@@ -110,10 +115,10 @@ public class ArbSituation implements Runnable {
             Double key = Double.valueOf(pair.getKey());//переменная хранит информацию о информацию о том, сколько едениц хотят купить
             Double value = Double.valueOf(pair.getValue());//хранит информацию о цене за которую хотят купить
             if(key > max2){
-                if(amount == null || amount >= key) {
+                //if(amount == null || amount >= key) {
                     max2 = key;
                     buy = value;
-                }
+                //}
                 //Ищем максимальную выгоду с помощью key > max1. Т.е ищем сделку, где предлагают продать больше едениц.
             }
         }
