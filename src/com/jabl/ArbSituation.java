@@ -7,9 +7,9 @@ import java.util.concurrent.Callable;
 
 public class ArbSituation implements Callable<StringBuilder> {
 
-    private Double amount = null;//переменная отвечающая за текущий баланс
-    public double finalSum = 0;//переменная отвечающая за начальную сумму
-    public double beginSum = 0;//переменная отвечающая за конечную сумму
+    private Double amount = null;//переменная отвечающая за текущий баланс. Изначально ставим пустоту, потому что пока что мы ничего не имеем.
+    private double finalSum = 0;//переменная отвечающая за начальную сумму
+    private double beginSum = 0;//переменная отвечающая за конечную сумму
     List<String> transfer = new ArrayList<>();//переменная которая содержит информацию о всех трансферных операциях.
     List<String> rialto;
     Map<String, ExchangeCup> pairs;
@@ -81,50 +81,46 @@ public class ArbSituation implements Callable<StringBuilder> {
     }
 
     public void sell(String order){
-        ExchangeCup exchangeCup = pairs.get(order);//получаем информацию о всех покупках
-        ArrayList<String> splitOrder = (ArrayList<String>) splitOrder(order);
-        // делим наши пары на отдельные части. Например если было ETH_BCH, то теперь лист хранит две строки ETH и BCH
+        ExchangeCup exchangeCup = pairs.get(order);//получаем информацию о всех покупках биржевого стакана данной валюты
+        ArrayList<String> splitOrder = (ArrayList<String>) splitOrder(order);//делим наши пары на отдельные части. Например если было ETH_BCH, то теперь лист хранит две строки ETH и BCH
 
         Double max1 = 0.0;//Сюда будем помещать максимальную выгоду от продажи
-        Double sell = 0.0;
+        Double sell = 0.0;//сюда будем помещать объем сколько хотят купить
         for(Map.Entry<String, Double> pair : exchangeCup.getBids().entrySet())
         {
-            Double key = Double.valueOf(pair.getKey());//переменная хранит информацию о информацию о том, сколько едениц продают
-            Double value = pair.getValue();//получаем цену которую хотят получить за продажу
+            Double key = Double.valueOf(pair.getKey());//переменная хранит информацию о информацию о том, за сколько покупают валюту
+            Double value = pair.getValue();//получаем объем сколько хотят купить едениц валюты
             if(key > max1){
-                //if(amount == null || amount >= key) {
-                    sell = key;
-                    max1 = value;
-                //}
-                //Ищем максимальную выгоду  value > max1 (ПОХОДУ ТУТ ОШИБКА!!!!)
+                if(amount == null || amount >= value && value > 0) {
+                    max1 = key;//устанавливаем в max1 максимальную цену за которую хотят купить валюту
+                    sell = value;//устанавливаем пару, какой объем хотят купить
+                }
             }
         }
-        setAmount(max1*sell); // заносим в переменную сумму которую мы получили от купли. Получаем по формуле цена*объем
-        transfer.add(sell+splitOrder.get(0));// заносим в transfer информацию о том что именно мы купили(Например 18.2ETH)
-        transfer.add(max1*sell + splitOrder.get(1));//заносим сюда информацию о том за сколько мы купили
+        setAmount(max1*sell); // заносим в переменную сумму которую мы получили от продажи. Получаем по формуле цена*объем
+        transfer.add(sell+splitOrder.get(0));// заносим в transfer информацию о том что именно мы продали(Например 18.2ETH)
+        transfer.add(amount + splitOrder.get(1));//заносим сюда информацию о том за сколько мы получили
     }
 
     public void buy(String order){
-        ExchangeCup exchangeCup = pairs.get(order);//получаем информацию о всех покупках
-        ArrayList<String> split = (ArrayList<String>) splitOrder(order);// делим наши пары на отдельные части. Например если было ETH_BCH,
-        // то теперь лист хранит две строки ETH и BCH
-        Double max2 = 0.0;//Сюда будем помещать максимальную выгоду от продажи
-        Double buy = 0.0;
+        ExchangeCup exchangeCup = pairs.get(order);//получаем информацию о всех продажах
+        ArrayList<String> split = (ArrayList<String>) splitOrder(order);// делим наши пары на отдельные части. Например если было ETH_BCH, то теперь лист хранит две строки ETH и BCH
+        Double max2 = 1000.0;//Сюда будем помещать минимальную цену за еденицу валюты. Поставим большое число, и будем уменьшать по мере нахождения более минимальной цены
+        Double buy = 0.0;//сюда заносим объем который продают
         for(Map.Entry<String, Double> pair : exchangeCup.getAsks().entrySet())
         {
-            Double key = Double.valueOf(pair.getKey());//переменная хранит информацию о информацию о том, сколько едениц хотят купить
-            Double value = Double.valueOf(pair.getValue());//хранит информацию о цене за которую хотят купить
-            if(key > max2){
-                //if(amount == null || amount >= key) {
+            Double key = Double.valueOf(pair.getKey());//переменная хранит информацию о том, за сколько хотят продать
+            Double value = Double.valueOf(pair.getValue());//хранит информацию об объеме продажи
+            if(key < max2){//если мы находим цену меньше чем max2
+               if(amount == null || amount >= key*value && key*value > 0) {//если счет в данный момент пустой или если счет больше чем цена*объем и цена*объем больше нуля тогда
                     max2 = key;
                     buy = value;
-                //}
-                //Ищем максимальную выгоду с помощью key > max1. Т.е ищем сделку, где предлагают продать больше едениц.
+               }
             }
         }
-        setAmount(buy*max2); // заносим в переменную сумму которую мы получили от продажи. Получаем по формуле цена*объем
-        transfer.add(max2 + split.get(1));// заносим в transfer информацию о том что именно мы продали(Например 18.2ETH)
-        transfer.add(buy*max2 + split.get(0));//хранит информацию о сумме, которую мы получили
+        setAmount(buy); // заносим в переменную число которую мы получили от покупки.
+        transfer.add(max2*buy + split.get(1));// заносим в transfer информацию о том сколько мы заплатили(Например 18.2ETH)
+        transfer.add(buy + split.get(0));//хранит информацию о сумме, которую мы купили
     }
 
     public List<String> splitOrder(String order){
